@@ -1,147 +1,217 @@
+// ─── Tipe data utama Wedding App ───
+
 export interface User {
   id: string;
-  email: string;
   name: string;
-  phone?: string;
-  plan: 'free' | 'basic' | 'premium';
-  subscription_expires_at?: string;
-  created_at: string;
-  updated_at: string;
+  email: string;
+}
+
+export interface TokenPayload {
+  accessToken: string;
+  refreshToken: string;
+}
+
+// ─── Auth ───
+export interface LoginPayload {
+  email: string;
+  password: string;
+}
+
+export interface RegisterPayload {
+  name: string;
+  email: string;
+  password: string;
 }
 
 export interface AuthResponse {
-  access_token: string;
-  refresh_token: string;
   user: User;
+  accessToken: string;
+  refreshToken: string;
 }
 
-export interface LoginInput {
-  email: string;
-  password: string;
-}
-
-export interface RegisterInput {
-  email: string;
-  password: string;
+// ─── Template ───
+export interface Template {
+  id: string;
   name: string;
-  phone?: string;
+  slug: string;
+  thumbnail: string;
+  theme: 'classic' | 'modern' | 'minimal' | 'floral' | 'rustic';
+  colors: {
+    primary: string;
+    secondary: string;
+    accent: string;
+    background: string;
+  };
 }
 
-export interface BrideGroom {
-  full_name: string;
-  nickname: string;
-  photo_url?: string;
-  father_name: string;
-  mother_name: string;
-  child_order: string;
-  social_media?: { instagram?: string; twitter?: string };
-}
-
-export interface EventDetail {
-  type: 'akad' | 'resepsi';
-  date: string;
-  start_time: string;
-  end_time: string;
-  location_name: string;
-  address: string;
-  maps_embed_url?: string;
-  maps_link?: string;
-}
-
-export interface LoveStory {
+// ─ Love Story ──
+export interface LoveStoryEvent {
   id?: string;
   date: string;
   title: string;
   description: string;
-  photo_url?: string;
+  image?: string;
 }
 
-export interface GalleryImage {
+// ─── Gallery ───
+export interface GalleryItem {
   id?: string;
   url: string;
   caption?: string;
-  order: number;
+  is_featured?: boolean;
 }
 
-export interface GiftAccount {
+// ─── Gifts ───
+export interface GiftBank {
   id?: string;
   bank_name: string;
   account_number: string;
   account_name: string;
-  type: 'bank' | 'ewallet';
+  logo?: string;
 }
 
-export interface Invitation {
-  id: string;
-  user_id: string;
+export interface GiftEWallet {
+  id?: string;
+  type: string;
+  phone: string;
+  account_name: string;
+  logo?: string;
+}
+
+export interface GiftAddress {
+  id?: string;
+  name: string;
+  address: string;
+  phone?: string;
+}
+
+// ─── Bride-Groom Info ───
+export interface Mempelai {
+  bride_nickname: string;
+  bride_full_name: string;
+  bride_father: string;
+  bride_mother: string;
+  bride_photo?: string;
+  groom_nickname: string;
+  groom_full_name: string;
+  groom_father: string;
+  groom_mother: string;
+  groom_photo?: string;
+}
+
+// ─── Acara ───
+export interface AcaraItem {
+  id?: string;
+  type: 'akad' | 'resepsi';
+  date: string;
+  start_time: string;
+  end_time: string;
+  timezone: string;
+  location_name: string;
+  address: string;
+  lat?: number;
+  lng?: number;
+  maps_url?: string;
+  notes?: string;
+}
+
+// ─── Wedding Data (Builder) ───
+export interface WeddingData {
+  id?: string;
   slug: string;
-  title: string;
   template_id: string;
-  bride: BrideGroom;
-  groom: BrideGroom;
-  events: EventDetail[];
-  love_stories: LoveStory[];
-  gallery_images: GalleryImage[];
-  gift_accounts: GiftAccount[];
+  mempelai: Mempelai;
+  acara: AcaraItem[];
+  love_story: LoveStoryEvent[];
+  gallery: GalleryItem[];
+  gifts: {
+    banks: GiftBank[];
+    e_wallets: GiftEWallet[];
+    addresses: GiftAddress[];
+  };
+  rsvp_settings: {
+    deadline: string;
+    max_guests: number;
+    custom_message: string;
+  };
+  cover_photo?: string;
   music_url?: string;
-  cover_photo_url?: string;
-  welcome_message?: string;
-  rsvp_deadline?: string;
+  is_paid: boolean;
   is_published: boolean;
-  meta_title?: string;
-  meta_description?: string;
-  meta_image_url?: string;
-  created_at: string;
-  updated_at: string;
 }
 
-export interface Guest {
+// ─── Tamu ───
+export interface Tamu {
   id: string;
-  invitation_id: string;
   name: string;
   group?: string;
   phone?: string;
   email?: string;
-  rsvp_status: 'pending' | 'attending' | 'not_attending';
-  guest_count: number;
-  message?: string;
-  personal_token: string;
-  created_at: string;
-  updated_at: string;
-}
-
-export interface RSVPInput {
-  name: string;
-  attending: boolean;
-  guest_count: number;
-  message: string;
-}
-
-export interface DashboardStats {
+  link_token: string;
+  link_url: string;
+  status: 'hadir' | 'tidak_hadir' | 'pending';
   total_guests: number;
-  attending: number;
-  not_attending: number;
+  confirmed_at?: string;
+  rsvp?: RSVPData;
+}
+
+export interface RSVPData {
+  id?: string;
+  tamu_id: string;
+  attendance: 'hadir' | 'tidak_hadir';
+  total_guests: number;
+  message: string;
+  created_at?: string;
+}
+
+// ─── Guest Book / Ucapan ───
+export interface UcapanItem {
+  id: string;
+  name: string;
+  message: string;
+  created_at: string;
+}
+
+// ─── Dashboard Stats ───
+export interface DashboardStats {
+  total_tamu: number;
+  hadir: number;
+  tidak_hadir: number;
   pending: number;
-  recent_rsvps: { name: string; status: string; created_at: string }[];
+  total_hadiah_terkirim?: number;
 }
 
-export interface BuilderState {
-  currentStep: number;
-  invitation: Partial<Invitation>;
-  isDraft: boolean;
-  lastSaved?: string;
-}
-
-export interface ApiResponse<T> {
-  data: T;
-  message?: string;
-  success: boolean;
-}
-
+// ─── API Response ───
 export interface PaginatedResponse<T> {
   data: T[];
   total: number;
   page: number;
-  limit: number;
+  per_page: number;
   total_pages: number;
 }
+
+export interface ApiResponse<T = unknown> {
+  success: boolean;
+  message: string;
+  data?: T;
+}
+
+// ─── Step Builder ───
+export type BuilderStep =
+  | 'template'
+  | 'mempelai'
+  | 'acara'
+  | 'love-story'
+  | 'galeri'
+  | 'hadiah'
+  | 'rsvp';
+
+export const BUILDER_STEPS: { key: BuilderStep; label: string }[] = [
+  { key: 'template', label: 'Template' },
+  { key: 'mempelai', label: 'Mempelai' },
+  { key: 'acara', label: 'Acara' },
+  { key: 'love-story', label: 'Love Story' },
+  { key: 'galeri', label: 'Galeri' },
+  { key: 'hadiah', label: 'Hadiah' },
+  { key: 'rsvp', label: 'RSVP' },
+];

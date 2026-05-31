@@ -1,116 +1,122 @@
 'use client';
 
-import { useEffect, useState } from 'react';
-import { motion } from 'framer-motion';
-import StatsCard from '@/components/dashboard/StatsCard';
-import { Skeleton } from '@/components/ui';
-import { dashboardApi } from '@/lib/api';
-import type { DashboardStats } from '@/types';
+import { useQuery } from '@tanstack/react-query';
+import Link from 'next/link';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Button } from '@/components/ui/button';
+import { Skeleton } from '@/components/ui/skeleton';
+import { Users, CheckCircle, XCircle, Clock, Plus, Download } from 'lucide-react';
+import api from '@/lib/api';
+import { toast } from 'sonner';
 
-const defaultStats: DashboardStats = {
-  total_guests: 0,
-  attending: 0,
-  not_attending: 0,
-  pending: 0,
-  recent_rsvps: [],
-};
+interface Stats {
+  tamu: { total: number; hadir: number; tidakHadir: number; pending: number };
+  wedding: { id: string; slug: string; isPublished: boolean };
+}
+
+async function fetchStats(): Promise<Stats> {
+  const [statsRes, weddingRes] = await Promise.all([
+    api.get('/invitations/dashboard/stats'),
+    api.get('/invitations'),
+  ]);
+  const weddingList = weddingRes.data.data;
+  const wedding = Array.isArray(weddingList) ? weddingList[0] : weddingList;
+  return {
+    tamu: statsRes.data.data,
+    wedding: wedding || { slug: '', isPublished: false },
+  };
+}
+
+const statCards = [
+  { label: 'Total Tamu', icon: Users, color: 'text-blue-600 bg-blue-50' },
+  { label: 'Hadir', icon: CheckCircle, color: 'text-green-600 bg-green-50' },
+  { label: 'Tidak Hadir', icon: XCircle, color: 'text-red-600 bg-red-50' },
+  { label: 'Pending', icon: Clock, color: 'text-amber-600 bg-amber-50' },
+];
 
 export default function DashboardPage() {
-  const [stats, setStats] = useState<DashboardStats>(defaultStats);
-  const [loading, setLoading] = useState(true);
+  const { data, isLoading } = useQuery({
+    queryKey: ['dashboard-stats'],
+    queryFn: fetchStats,
+    staleTime: 60000,
+  });
 
-  useEffect(() => {
-    const fetchStats = async () => {
-      try {
-        const invRes = await dashboardApi.getStats('default');
-        setStats(invRes.data);
-      } catch {
-        setStats(defaultStats);
-      } finally {
-        setLoading(false);
-      }
-    };
-    fetchStats();
-  }, []);
+  const handleExportCSV = async () => {
+    try {
+      const weddingId = data?.wedding?.id;
+      if (!weddingId) { toast.error('ID undangan tidak ditemukan'); return; }
+      const { data: csvData } = await api.get(`/invitations/${weddingId}/guests/export`, { responseType: 'blob' });
+      const url = window.URL.createObjectURL(new Blob([csvData]));
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = 'daftar-tamu.csv';
+      a.click();
+      window.URL.revokeObjectURL(url);
+      toast.success('CSV berhasil diunduh');
+    } catch {
+      toast.error('Gagal mengunduh CSV');
+    }
+  };
 
-  const statCards = [
-    { label: 'Total Tamu', value: stats.total_guests, icon: (
-      <svg width="20" height="20" viewBox="0 0 20 20" fill="none"><circle cx="8" cy="6" r="3.5" stroke="#d4a574" strokeWidth="1.2"/><path d="M1 18c0-3.866 3.582-7 8-7s8 3.134 8 7" stroke="#d4a574" strokeWidth="1.2"/><path d="M15.5 5a3 3 0 100-6M19 18v-1.2C19 14.1 17.2 12 15 12" stroke="#d4a574" strokeWidth="1.2"/></svg>
-    ), color: 'amber' as const },
-    { label: 'Hadir', value: stats.attending, icon: (
-      <svg width="20" height="20" viewBox="0 0 20 20" fill="none"><path d="M4 11l4 4L16 7" stroke="#34d399" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/></svg>
-    ), color: 'green' as const },
-    { label: 'Tidak Hadir', value: stats.not_attending, icon: (
-      <svg width="20" height="20" viewBox="0 0 20 20" fill="none"><path d="M6 6l8 8M14 6l-8 8" stroke="#f87171" strokeWidth="1.5" strokeLinecap="round"/></svg>
-    ), color: 'red' as const },
-    { label: 'Menunggu', value: stats.pending, icon: (
-      <svg width="20" height="20" viewBox="0 0 20 20" fill="none"><circle cx="10" cy="10" r="7" stroke="#fbbf24" strokeWidth="1.2"/><path d="M10 5.5V10l3.5 2" stroke="#fbbf24" strokeWidth="1.2" strokeLinecap="round"/></svg>
-    ), color: 'yellow' as const },
-  ];
+  const stats = data?.tamu;
+  const values = [stats?.total ?? 0, stats?.hadir ?? 0, stats?.tidakHadir ?? 0, stats?.pending ?? 0];
 
   return (
-    <div className="space-y-8">
-      {/* Header */}
-      <div>
-        <h2 className="text-2xl md:text-3xl font-bold font-[Playfair_Display] text-white/90">Dashboard</h2>
-        <p className="text-sm text-white/25 font-[Inter] mt-1">Ringkasan undangan dan kehadiran tamu Anda</p>
+    <div className="space-y-6 max-w-7xl">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+        <div>
+          <h1 className="text-2xl font-bold">Dashboard</h1>
+          <p className="text-muted-foreground">Selamat datang kembali! Berikut ringkasan undangan Anda.</p>
+        </div>
+        <div className="flex gap-2">
+          <Link href="/builder">
+            <Button>
+              <Plus className="h-4 w-4 mr-2" />
+              Edit Undangan
+            </Button>
+          </Link>
+          <Button variant="outline" onClick={handleExportCSV}>
+            <Download className="h-4 w-4 mr-2" />
+            Export CSV
+          </Button>
+        </div>
       </div>
 
-      {/* Stats */}
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
         {statCards.map((card, i) => (
-          <motion.div key={card.label} initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: i * 0.08 }}>
-            {loading ? <Skeleton className="h-28 w-full" /> : <StatsCard icon={card.icon} label={card.label} value={card.value} color={card.color} />}
-          </motion.div>
+          <Card key={card.label}>
+            <CardContent className="p-5 flex items-center gap-4">
+              <div className={`p-3 rounded-xl ${card.color}`}>
+                <card.icon className="h-6 w-6" />
+              </div>
+              <div>
+                <p className="text-sm text-muted-foreground">{card.label}</p>
+                {isLoading ? <Skeleton className="h-6 w-12 mt-1" /> : <p className="text-2xl font-bold">{values[i]}</p>}
+              </div>
+            </CardContent>
+          </Card>
         ))}
       </div>
 
-      {/* Recent Activity */}
-      <div>
-        <h3 className="text-lg font-semibold font-[Playfair_Display] text-white/80 mb-4">Aktivitas Terbaru</h3>
-        <div className="glass-card rounded-2xl overflow-hidden">
-          {loading ? (
-            <div className="p-6 space-y-4">
-              {Array.from({ length: 4 }).map((_, i) => (
-                <Skeleton key={i} className="h-12 w-full" />
-              ))}
-            </div>
-          ) : stats.recent_rsvps.length > 0 ? (
-            <div className="divide-y divide-white/4">
-              {stats.recent_rsvps.map((rsvp, i) => (
-                <div key={i} className="flex items-center justify-between px-6 py-4">
-                  <div className="flex items-center gap-3">
-                    <div className="w-9 h-9 rounded-full bg-amber-500/10 border border-amber-500/10 flex items-center justify-center">
-                      <span className="text-xs font-bold text-amber-400">{rsvp.name.charAt(0).toUpperCase()}</span>
-                    </div>
-                    <div>
-                      <p className="text-sm font-medium text-white/70 font-[Inter]">{rsvp.name}</p>
-                      <p className="text-[11px] text-white/25 font-[Inter]">RSVP baru</p>
-                    </div>
-                  </div>
-                  <div className="text-right">
-                    <span className={`text-[11px] font-medium px-2 py-0.5 rounded-full font-[Inter] ${
-                      rsvp.status === 'attending' ? 'bg-emerald-500/10 text-emerald-400' :
-                      rsvp.status === 'not_attending' ? 'bg-red-500/10 text-red-400' :
-                      'bg-amber-500/10 text-amber-400'
-                    }`}>
-                      {rsvp.status === 'attending' ? 'Hadir' : rsvp.status === 'not_attending' ? 'Tidak Hadir' : 'Menunggu'}
-                    </span>
-                    <p className="text-[10px] text-white/15 font-[Inter] mt-1">{new Date(rsvp.created_at).toLocaleDateString('id-ID')}</p>
-                  </div>
-                </div>
-              ))}
-            </div>
-          ) : (
-            <div className="p-12 text-center">
-              <div className="w-16 h-16 rounded-2xl bg-white/3 border border-white/5 flex items-center justify-center mx-auto mb-4">
-                <svg width="24" height="24" viewBox="0 0 24 24" fill="none"><path d="M4 4h16v16H4zM4 9h16M9 4v16" stroke="white" strokeWidth="1" opacity="0.15"/></svg>
-              </div>
-              <p className="text-sm text-white/25 font-[Inter]">Belum ada aktivitas RSVP</p>
-              <p className="text-xs text-white/15 font-[Inter] mt-1">Bagikan undangan Anda untuk mulai menerima konfirmasi tamu</p>
-            </div>
-          )}
-        </div>
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <Card>
+          <CardHeader><CardTitle className="text-lg">Tambah Tamu</CardTitle></CardHeader>
+          <CardContent className="flex flex-col gap-3">
+            <Link href="/tamu"><Button className="w-full"><Plus className="h-4 w-4 mr-2" />Kelola Tamu</Button></Link>
+            <p className="text-sm text-muted-foreground">Import CSV, tambah manual, atau kirim undangan via WhatsApp</p>
+          </CardContent>
+        </Card>
+        <Card>
+          <CardHeader><CardTitle className="text-lg">Status Undangan</CardTitle></CardHeader>
+          <CardContent className="space-y-3">
+            {data?.wedding?.isPublished ? (
+              <div className="flex items-center gap-2 text-green-600"><CheckCircle className="h-5 w-5" /><span>Undangan sudah dipublikasikan</span></div>
+            ) : (
+              <div className="flex items-center gap-2 text-amber-600"><Clock className="h-5 w-5" /><span>Undangan belum dipublikasikan</span></div>
+            )}
+            <Link href="/builder"><Button variant="outline" className="w-full">Edit Undangan</Button></Link>
+          </CardContent>
+        </Card>
       </div>
     </div>
   );

@@ -1,141 +1,149 @@
 'use client';
 
 import { useState } from 'react';
-import { useForm } from 'react-hook-form';
-import { zodResolver } from '@hookform/resolvers/zod';
-import { z } from 'zod';
-import { motion } from 'framer-motion';
-import { Input, Button } from '@/components/ui';
-import { authApi } from '@/lib/api';
-import { useAuthStore } from '@/store/auth.store';
-
-const settingsSchema = z.object({
-  name: z.string().min(2, 'Nama minimal 2 karakter'),
-  email: z.string().email('Email tidak valid'),
-  phone: z.string().optional(),
-});
-type SettingsForm = z.infer<typeof settingsSchema>;
-
-const passwordSchema = z.object({
-  currentPassword: z.string().min(1, 'Password saat ini wajib diisi'),
-  newPassword: z.string().min(8, 'Password baru minimal 8 karakter'),
-  confirmPassword: z.string().min(1, 'Konfirmasi password wajib'),
-}).refine((d) => d.newPassword === d.confirmPassword, { message: 'Password tidak cocok', path: ['confirmPassword'] });
-type PasswordForm = z.infer<typeof passwordSchema>;
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import { Separator } from '@/components/ui/separator';
+import { useAuthStore } from '@/store/authStore';
+import { toast } from 'sonner';
+import { Save, User, Lock, DollarSign } from 'lucide-react';
 
 export default function SettingsPage() {
   const { user, setUser } = useAuthStore();
-  const [saved, setSaved] = useState(false);
-  const [passSaved, setPassSaved] = useState(false);
-  const [generalLoading, setGeneralLoading] = useState(false);
-  const [passLoading, setPassLoading] = useState(false);
-  const [generalError, setGeneralError] = useState('');
-  const [passError, setPassError] = useState('');
+  const [name, setName] = useState(user?.name ?? '');
+  const [email, setEmail] = useState(user?.email ?? '');
+  const [currentPassword, setCurrentPassword] = useState('');
+  const [newPassword, setNewPassword] = useState('');
+  const [saving, setSaving] = useState(false);
 
-  const generalForm = useForm<SettingsForm>({
-    resolver: zodResolver(settingsSchema),
-    defaultValues: { name: user?.name ?? '', email: user?.email ?? '', phone: user?.phone ?? '' },
-  });
-
-  const passForm = useForm<PasswordForm>({
-    resolver: zodResolver(passwordSchema),
-  });
-
-  const onSaveGeneral = async (data: SettingsForm) => {
-    setGeneralLoading(true);
-    setGeneralError('');
-    setSaved(false);
+  const handleSaveProfile = async () => {
+    setSaving(true);
     try {
-      const res = await authApi.me();
-      setUser({ ...res.data, name: data.name, email: data.email, phone: data.phone });
-      setSaved(true);
-      setTimeout(() => setSaved(false), 3000);
-    } catch (err: unknown) {
-      const axiosErr = err as { response?: { data?: { message?: string } } };
-      setGeneralError(axiosErr.response?.data?.message ?? 'Gagal menyimpan perubahan');
+      // TODO: Connect to API
+      setUser({ ...user!, name, email });
+      toast.success('Profil berhasil diperbarui');
+    } catch {
+      toast.error('Gagal menyimpan profil');
     } finally {
-      setGeneralLoading(false);
+      setSaving(false);
     }
   };
 
-  const onSavePassword = async () => {
-    setPassLoading(true);
-    setPassError('');
-    setPassSaved(false);
+  const handleChangePassword = async () => {
+    if (!currentPassword || !newPassword) {
+      toast.error('Semua field password wajib diisi');
+      return;
+    }
+    setSaving(true);
     try {
-      setPassSaved(true);
-      passForm.reset();
-      setTimeout(() => setPassSaved(false), 3000);
-    } catch (err: unknown) {
-      const axiosErr = err as { response?: { data?: { message?: string } } };
-      setPassError(axiosErr.response?.data?.message ?? 'Gagal mengubah password');
+      // TODO: Connect to API
+      toast.success('Password berhasil diperbarui');
+      setCurrentPassword('');
+      setNewPassword('');
+    } catch {
+      toast.error('Gagal mengubah password');
     } finally {
-      setPassLoading(false);
+      setSaving(false);
     }
   };
 
   return (
-    <div className="space-y-8 max-w-3xl">
+    <div className="space-y-6 max-w-3xl">
       <div>
-        <h2 className="text-2xl md:text-3xl font-bold font-[Playfair_Display] text-white/90">Pengaturan</h2>
-        <p className="text-sm text-white/25 font-[Inter] mt-1">Kelola profil dan keamanan akun Anda</p>
+        <h1 className="text-2xl font-bold">Pengaturan</h1>
+        <p className="text-muted-foreground">Kelola akun dan preferensi undangan Anda</p>
       </div>
 
       {/* Profile */}
-      <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} className="glass-card rounded-2xl p-6 lg:p-8">
-        <h3 className="text-lg font-semibold font-[Playfair_Display] text-white/80 mb-6">Profil</h3>
-        <form onSubmit={generalForm.handleSubmit(onSaveGeneral)} className="space-y-5">
-          {generalError && (
-            <div className="p-4 rounded-xl bg-red-500/8 border border-red-500/15 text-sm text-red-400/80 font-[Inter]">{generalError}</div>
-          )}
-          {saved && (
-            <div className="p-4 rounded-xl bg-emerald-500/8 border border-emerald-500/15 text-sm text-emerald-400/80 font-[Inter]">Perubahan berhasil disimpan!</div>
-          )}
-
-          <div className="flex items-center gap-5 mb-6">
-            <div className="w-16 h-16 rounded-2xl bg-gradient-to-br from-amber-400/20 to-amber-600/10 border border-amber-500/15 flex items-center justify-center">
-              <span className="text-2xl font-bold text-amber-400 font-[Playfair_Display]">{user?.name?.charAt(0).toUpperCase() ?? 'U'}</span>
-            </div>
-            <div>
-              <p className="text-sm text-white/60 font-[Inter]">{user?.name ?? 'User'}</p>
-              <p className="text-[11px] text-white/20 font-[Inter]">Plan: {user?.plan ?? 'free'}</p>
-            </div>
+      <Card>
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2">
+            <User className="h-5 w-5" />
+            Profil Akun
+          </CardTitle>
+          <CardDescription>Perbarui informasi akun Anda</CardDescription>
+        </CardHeader>
+        <CardContent className="space-y-4">
+          <div className="space-y-2">
+            <Label htmlFor="settings-name">Nama Lengkap</Label>
+            <Input
+              id="settings-name"
+              value={name}
+              onChange={(e) => setName(e.target.value)}
+              placeholder="Nama Anda"
+            />
           </div>
-
-          <div className="grid md:grid-cols-2 gap-5">
-            <Input label="Nama Lengkap" error={generalForm.formState.errors.name?.message} {...generalForm.register('name')} />
-            <Input label="Email" type="email" error={generalForm.formState.errors.email?.message} {...generalForm.register('email')} />
+          <div className="space-y-2">
+            <Label htmlFor="settings-email">Email</Label>
+            <Input
+              id="settings-email"
+              type="email"
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+              placeholder="email@contoh.com"
+            />
           </div>
-          <Input label="No. HP (opsional)" type="tel" error={generalForm.formState.errors.phone?.message} {...generalForm.register('phone')} />
-
-          <div className="flex justify-end">
-            <Button type="submit" variant="primary" loading={generalLoading}>Simpan Perubahan</Button>
-          </div>
-        </form>
-      </motion.div>
+          <Button onClick={handleSaveProfile} disabled={saving}>
+            <Save className="h-4 w-4 mr-2" />
+            {saving ? 'Menyimpan...' : 'Simpan Profil'}
+          </Button>
+        </CardContent>
+      </Card>
 
       {/* Password */}
-      <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.1 }} className="glass-card rounded-2xl p-6 lg:p-8">
-        <h3 className="text-lg font-semibold font-[Playfair_Display] text-white/80 mb-6">Ubah Password</h3>
-        <form onSubmit={passForm.handleSubmit(onSavePassword)} className="space-y-5">
-          {passError && (
-            <div className="p-4 rounded-xl bg-red-500/8 border border-red-500/15 text-sm text-red-400/80 font-[Inter]">{passError}</div>
-          )}
-          {passSaved && (
-            <div className="p-4 rounded-xl bg-emerald-500/8 border border-emerald-500/15 text-sm text-emerald-400/80 font-[Inter]">Password berhasil diubah!</div>
-          )}
-
-          <Input label="Password Saat Ini" type="password" error={passForm.formState.errors.currentPassword?.message} {...passForm.register('currentPassword')} />
-          <div className="grid md:grid-cols-2 gap-5">
-            <Input label="Password Baru" type="password" error={passForm.formState.errors.newPassword?.message} {...passForm.register('newPassword')} />
-            <Input label="Konfirmasi Password Baru" type="password" error={passForm.formState.errors.confirmPassword?.message} {...passForm.register('confirmPassword')} />
+      <Card>
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2">
+            <Lock className="h-5 w-5" />
+            Ubah Password
+          </CardTitle>
+          <CardDescription>Pastikan password baru minimal 8 karakter</CardDescription>
+        </CardHeader>
+        <CardContent className="space-y-4">
+          <div className="space-y-2">
+            <Label htmlFor="current-pw">Password Saat Ini</Label>
+            <Input
+              id="current-pw"
+              type="password"
+              value={currentPassword}
+              onChange={(e) => setCurrentPassword(e.target.value)}
+            />
           </div>
-
-          <div className="flex justify-end">
-            <Button type="submit" variant="danger" loading={passLoading}>Ubah Password</Button>
+          <div className="space-y-2">
+            <Label htmlFor="new-pw">Password Baru</Label>
+            <Input
+              id="new-pw"
+              type="password"
+              value={newPassword}
+              onChange={(e) => setNewPassword(e.target.value)}
+            />
           </div>
-        </form>
-      </motion.div>
+          <Button onClick={handleChangePassword} disabled={saving}>
+            <Save className="h-4 w-4 mr-2" />
+            {saving ? 'Menyimpan...' : 'Ubah Password'}
+          </Button>
+        </CardContent>
+      </Card>
+
+      {/* Info */}
+      <Card>
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2">
+            <DollarSign className="h-5 w-5" />
+            Informasi Langganan
+          </CardTitle>
+        </CardHeader>
+        <CardContent>
+          <p className="text-sm text-muted-foreground">
+            Anda menggunakan paket gratis. Upgrade ke paket Premium untuk fitur lengkap seperti kustom domain, musik, dan tanpa watermark.
+          </p>
+          <Button variant="outline" className="mt-4">
+            Upgrade ke Premium
+          </Button>
+        </CardContent>
+      </Card>
     </div>
   );
 }

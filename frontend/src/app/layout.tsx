@@ -1,28 +1,17 @@
 import type { Metadata } from 'next';
 import './globals.css';
+import Providers from './providers';
 
 export const metadata: Metadata = {
-  title: 'WeddingInv — Undangan Digital Premium',
-  description: 'Buat undangan pernikahan digital elegan dengan template premium. RSVP online, peta interaktif, dan blast WhatsApp otomatis.',
-  openGraph: {
-    title: 'WeddingInv — Undangan Digital Premium',
-    description: 'Buat undangan pernikahan digital elegan dengan template premium.',
-    type: 'website',
-    locale: 'id_ID',
-    siteName: 'WeddingInv',
-  },
-  twitter: {
-    card: 'summary_large_image',
-    title: 'WeddingInv — Undangan Digital Premium',
-  },
-  robots: { index: true, follow: true },
+  title: 'Wedding Invitation - Undangan Digital',
+  description: 'Platform undangan pernikahan digital interaktif dan elegan',
 };
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
-    <html lang="id">
-      <body className="antialiased min-h-screen bg-[#06060c]">
-        {children}
+    <html lang="id" suppressHydrationWarning>
+      <body className="min-h-screen bg-background text-foreground antialiased">
+        <Providers>{children}</Providers>
       </body>
     </html>
   );
