@@ -81,6 +81,7 @@ export const uploadApi = {
     const formData = new FormData();
     formData.append('file', file);
     if (folder) formData.append('folder', folder);
-    return api.post('/upload', formData, { headers: { 'Content-Type': 'multipart/form-data' });
+    const headers = { 'Content-Type': 'multipart/form-data' };
+    return api.post('/upload', formData, { headers });
   },
 };

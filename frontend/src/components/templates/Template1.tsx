@@ -21,7 +21,7 @@ function useCountdown(date: string) {
   return t;
 }
 
-function Section({ children, className = '', delay = 0 }: { children: React.ReactNode; className?: string; delay?: number }) {
+function Section({ children, className = '', delay = 0, id }: { children: React.ReactNode; className?: string; delay?: number; id?: string }) {
   const ref = useRef(null);
   const inView = useInView(ref, { once: true, margin: '-60px' });
   return (
@@ -30,7 +30,7 @@ function Section({ children, className = '', delay = 0 }: { children: React.Reac
       initial={{ opacity: 0, y: 40 }}
       animate={inView ? { opacity: 1, y: 0 } : {}}
       transition={{ duration: 0.8, delay, ease: [0.22, 0.9, 0.36, 1] }}
-      className={className}
+      className={className} id={id}
     >
       {children}
     </motion.section>
@@ -231,7 +231,7 @@ export default function Template1({ data }: { data: Invitation }) {
                   transition={{ duration: 0.6 }}
                   className="border border-amber-500/15 rounded-2xl p-6 bg-gradient-to-r from-amber-500/[0.03] to-transparent"
                 >
-                  <h3 className="text-lg font-bold text-amber-100 mb-4">{ev.type === 'akak' ? 'Akad Nikah' : 'Resepsi'}</h3>
+                  <h3 className="text-lg font-bold text-amber-100 mb-4">{ev.type === 'akad' ? 'Akad Nikah' : 'Resepsi'}</h3>
                   <div className="space-y-2 text-sm font-[Inter] text-white/60">
                     <p>📅 {formatDate(ev.date)}</p>
                     <p>🕐 {formatTime(ev.start_time)} – {formatTime(ev.end_time)}</p>

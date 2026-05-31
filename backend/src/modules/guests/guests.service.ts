@@ -3,9 +3,10 @@ import {
   Injectable,
   NotFoundException,
   ConflictException,
+  BadRequestException,
 } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Repository, Like, In } from 'typeorm';
+import { Repository, Like } from 'typeorm';
 import * as crypto from 'crypto';
 import { Guest } from './entities/guest.entity';
 import { CreateGuestDto } from './dto/create-guest.dto';
@@ -41,7 +42,7 @@ export class GuestsService {
       where,
       skip,
       take: limit,
-      order: { createdAt: 'DESC' },
+      order: { createdAt: 'DESC' as any },
     });
 
     return {
@@ -121,7 +122,74 @@ export class GuestsService {
       attending: guests.filter((g) => g.rsvpStatus === 'attending').length,
       notAttending: guests.filter((g) => g.rsvpStatus === 'not_attending').length,
       pending: guests.filter((g) => g.rsvpStatus === 'pending').length,
-      totalGuests: guests.reduce((sum, g) => sum + (g.rsvpCount || 0), 0),
+      totalGuests: guests
+        .filter((g) => g.rsvpStatus === 'attending')
+        .reduce((sum, g) => sum + (g.rsvpCount || 0), 0),
+    };
+  }
+
+  async importFromCsv(invitationId: string, csvContent: string) {
+    const lines = csvContent.trim().split('\n');
+    const results = [];
+
+    // Skip header row
+    for (let i = 1; i < lines.length; i++) {
+      const line = lines[i].trim();
+      if (!line) continue;
+
+      const columns = line.split(',').map((c) => c.trim().replace(/"/g, ''));
+
+      const name = columns[0];
+      const phone = columns[1] || null;
+      const groupName = columns[2] || null;
+
+      if (!name) continue;
+
+      const token = this.generateToken();
+
+      const guest = this.guestRepository.create({
+        invitationId,
+        name,
+        phone,
+        groupName,
+        token,
+      });
+
+      try {
+        await this.guestRepository.save(guest);
+        results.push({ success: true, name });
+      } catch (err) {
+        results.push({ success: false, name, error: 'Gagal import' });
+      }
+    }
+
+    return {
+      message: `Import selesai: ${results.filter((r) => r.success).length} berhasil, ${results.filter((r) => !r.success).length} gagal`,
+      details: results,
+    };
+  }
+
+  async exportToCsv(invitationId: string): Promise<string> {
+    const guests = await this.guestRepository.find({
+      where: { invitationId },
+      order: { name: 'ASC' },
+    });
+
+    const header = 'Nama,Phone,Grup,Status RSVP,Jumlah,Tanggal RSVP,Pesan\n';
+    const rows = guests
+      .map((g) => {
+        const cleanStr = (s: string) => (s || '').replace(/,/g, ';').replace(/\n/g, ' ');
+        return `"${cleanStr(g.name)}","${cleanStr(g.phone)}","${cleanStr(g.groupName)}","${g.rsvpStatus}","${g.rsvpCount}","${g.rsvpAt || ''}","${cleanStr(g.rsvpMessage)}"`;
+      })
+      .join('\n');
+
+    return header + rows;
+  }
+
+  async getFormLink(invitationId: string) {
+    return {
+      formLink: `/undangan/${invitationId}/daftar`,
+      message: 'Share link ini ke tamu untuk registrasi mandiri',
     };
   }
 

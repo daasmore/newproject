@@ -22,7 +22,7 @@ function useCountdown(date: string) {
   return t;
 }
 
-function SlideSection({ children, className = '', direction = 'left' }: { children: React.ReactNode; className?: string; direction?: 'left' | 'right' }) {
+function SlideSection({ children, className = '', direction = 'left', id }: { children: React.ReactNode; className?: string; direction?: 'left' | 'right'; id?: string }) {
   const ref = useRef(null);
   const inView = useInView(ref, { once: true, margin: '-50px' });
   return (
@@ -31,7 +31,7 @@ function SlideSection({ children, className = '', direction = 'left' }: { childr
       initial={{ opacity: 0, x: direction === 'left' ? -60 : 60 }}
       animate={inView ? { opacity: 1, x: 0 } : {}}
       transition={{ duration: 0.7, ease: [0.22, 0.9, 0.36, 1] }}
-      className={className}
+      className={className} id={id}
     >
       {children}
     </motion.section>
@@ -309,7 +309,7 @@ export default function Template2({ data }: { data: Invitation }) {
         {lightboxImg && (
           <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="fixed inset-0 z-[200] bg-white/95 flex items-center justify-center p-4" onClick={() => setLightboxImg(null)}>
             <img src={lightboxImg} alt="" className="max-w-full max-h-full object-contain" />
-            <button className="absolute top-4 right-4 text-black/40 text-xl" onClick={() => setLightboxImg(null)}✕</button>
+            <button className="absolute top-4 right-4 text-black/40 text-xl" onClick={() => setLightboxImg(null)}>✕</button>
           </motion.div>
         )}
       </AnimatePresence>
@@ -317,11 +317,11 @@ export default function Template2({ data }: { data: Invitation }) {
   );
 }
 
-function Section({ children, className = '' }: { children: React.ReactNode; className?: string }) {
+function Section({ children, className = '', id }: { children: React.ReactNode; className?: string; id?: string }) {
   const ref = useRef(null);
   const inView = useInView(ref, { once: true, margin: '-50px' });
   return (
-    <motion.section ref={ref} initial={{ opacity: 0, y: 30 }} animate={inView ? { opacity: 1, y: 0 } : {}} transition={{ duration: 0.6 }} className={className}>
+    <motion.section ref={ref} initial={{ opacity: 0, y: 30 }} animate={inView ? { opacity: 1, y: 0 } : {}} transition={{ duration: 0.6 }} className={className} id={id}>
       {children}
     </motion.section>
   );

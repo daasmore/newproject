@@ -47,8 +47,8 @@ function Step1Template() {
 
 function Step2Couple() {
   const { invitation, setBrideGroom } = useBuilderStore();
-  const bride = invitation.bride || {};
-  const groom = invitation.groom || {};
+  const bride = (invitation.bride || {}) as Record<string, string>;
+  const groom = (invitation.groom || {}) as Record<string, string>;
 
   return (
     <div>
@@ -270,7 +270,7 @@ function Step7Rsvp() {
       <div className="space-y-4">
         <div>
           <label className="text-xs text-white/30 font-[Inter] mb-1 block">Tanggal Deadline RSVP</label>
-          <input type="date" value={invitation.rsvp_deadline || ''} onChange={(e) => setRsvpSettings({ deadline: e.target_value })} className="w-full px-4 py-3 rounded-xl input-dark font-[Inter] text-sm" />
+          <input type="date" value={invitation.rsvp_deadline || ''} onChange={(e) => setRsvpSettings({ deadline: e.target.value })} className="w-full px-4 py-3 rounded-xl input-dark font-[Inter] text-sm" />
         </div>
         <div>
           <label className="text-xs text-white/30 font-[Inter] mb-1 block">Pesan Sambutan</label>

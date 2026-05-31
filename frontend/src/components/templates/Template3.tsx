@@ -22,7 +22,7 @@ function useCountdown(date: string) {
   return t;
 }
 
-function BloomSection({ children, className = '' }: { children: React.ReactNode; className?: string }) {
+function BloomSection({ children, className = '', id }: { children: React.ReactNode; className?: string; id?: string }) {
   const ref = useRef(null);
   const inView = useInView(ref, { once: true, margin: '-50px' });
   return (
@@ -31,7 +31,7 @@ function BloomSection({ children, className = '' }: { children: React.ReactNode;
       initial={{ opacity: 0, scale: 0.95, y: 30 }}
       animate={inView ? { opacity: 1, scale: 1, y: 0 } : {}}
       transition={{ duration: 0.8, ease: [0.22, 0.9, 0.36, 1] }}
-      className={className}
+      className={className} id={id}
     >
       {children}
     </motion.section>

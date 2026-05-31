@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from 'react';
 import { motion } from 'framer-motion';
-import { StatsCard } from '@/components/dashboard/StatsCard';
+import StatsCard from '@/components/dashboard/StatsCard';
 import { Skeleton } from '@/components/ui';
 import { dashboardApi } from '@/lib/api';
 import type { DashboardStats } from '@/types';

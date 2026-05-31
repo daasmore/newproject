@@ -3,8 +3,8 @@
 import { useEffect, useState, useCallback } from 'react';
 import { motion } from 'framer-motion';
 import { Input, Button, Badge, Skeleton, Modal } from '@/components/ui';
-import { GuestTable } from '@/components/dashboard/GuestTable';
-import { CSVImport } from '@/components/dashboard/CSVImport';
+import GuestTable from '@/components/dashboard/GuestTable';
+
 import { guestsApi } from '@/lib/api';
 import type { Guest } from '@/types';
 
@@ -96,16 +96,11 @@ export default function TamuPage() {
       {/* Search + Filter */}
       <div className="flex flex-col md:flex-row gap-3">
         <div className="flex-1">
-          <Input
-            placeholder="Cari nama, telepon, atau email..."
+          <input
+            placeholder="Cari nama tamu..."
             value={search}
             onChange={(e) => setSearch(e.target.value)}
-            icon={
-              <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
-                <circle cx="6.5" cy="6.5" r="5" stroke="currentColor" strokeWidth="1.2"/>
-                <path d="M10.5 10.5l4 4" stroke="currentColor" strokeWidth="1.2" strokeLinecap="round"/>
-              </svg>
-            }
+            className="w-full px-4 py-2.5 rounded-xl input-dark font-[Inter] text-sm"
           />
         </div>
         <div className="flex gap-2">
@@ -137,19 +132,14 @@ export default function TamuPage() {
             {Array.from({ length: 6 }).map((_, i) => <Skeleton key={i} className="h-14 w-full" />)}
           </div>
         ) : (
-          <GuestTable guests={filteredGuests} onRefresh={fetchGuests} />
+          <GuestTable guests={filteredGuests} />
         )}
       </motion.div>
 
       {/* CSV Import Modal */}
-      <Modal isOpen={showCsvModal} onClose={() => setShowCsvModal(false)} title="Import CSV" size="lg">
-        <CSVImport
-          onComplete={() => {
-            setShowCsvModal(false);
-            fetchGuests();
-          }}
-          onCancel={() => setShowCsvModal(false)}
-        />
+      <Modal open={showCsvModal} onClose={() => setShowCsvModal(false)} title="Import CSV">
+        <p className="text-white/30 text-sm font-[Inter]">Drag & drop file CSV atau klik untuk memilih</p>
+        <button onClick={() => setShowCsvModal(false)} className="btn-secondary px-4 py-2 rounded-lg text-sm mt-4">Tutup</button>
       </Modal>
     </div>
   );
