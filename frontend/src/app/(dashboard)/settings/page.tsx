@@ -58,7 +58,7 @@ export default function SettingsPage() {
     }
   };
 
-  const onSavePassword = async (_data: PasswordForm) => {
+  const onSavePassword = async () => {
     setPassLoading(true);
     setPassError('');
     setPassSaved(false);

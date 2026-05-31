@@ -2,7 +2,7 @@
 
 import { useEffect, useState, useCallback } from 'react';
 import { motion } from 'framer-motion';
-import { Input, Button, Badge, Skeleton, Modal } from '@/components/ui';
+import { Button, Skeleton, Modal } from '@/components/ui';
 import GuestTable from '@/components/dashboard/GuestTable';
 
 import { guestsApi } from '@/lib/api';
@@ -70,8 +70,9 @@ export default function TamuPage() {
           <Button variant="primary" size="sm" onClick={() => {
             const headers = ['Nama', 'Grup', 'No HP', 'Email', 'Status', 'Jumlah Tamu'];
             const rows = guests.map((g) => [g.name, g.group ?? '', g.phone ?? '', g.email ?? '', g.rsvp_status, String(g.guest_count)]);
-            const { downloadCSV } = require('@/lib/utils');
-            downloadCSV(headers, rows, 'daftar-tamu.csv');
+            import('@/lib/utils').then(({ downloadCSV }) => {
+              downloadCSV(headers, rows, 'daftar-tamu.csv');
+            });
           }}>
             Export CSV
           </Button>
