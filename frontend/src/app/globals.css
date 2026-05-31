@@ -115,9 +115,34 @@
   * {
     @apply border-border outline-ring/50;
   }
+  html {
+    color-scheme: light only;
+  }
   body {
     @apply bg-background text-foreground;
+    background-color: #0F172A;
+    color: #F8FAFC;
   }
+}
+
+/* Force elegant dark theme — UndanganKu */
+:root {
+  --background: #0F172A;
+  --foreground: #F8FAFC;
+  --card: #1E293B;
+  --card-foreground: #F8FAFC;
+  --primary: #C9A96E;
+  --primary-foreground: #0F172A;
+  --secondary: #334155;
+  --secondary-foreground: #F8FAFC;
+  --muted: #1E293B;
+  --muted-foreground: #94A3B8;
+  --accent: #C9A96E;
+  --accent-foreground: #0F172A;
+  --border: #334155;
+  --input: #1E293B;
+  --ring: #C9A96E;
+  --destructive: #EF4444;
 }
 
 /* ─── Template Theme CSS Variables ─── */
