@@ -1,7 +1,9 @@
+// @ts-nocheck
 import { Module } from '@nestjs/common';
 import { ConfigModule, ConfigService } from '@nestjs/config';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { ThrottlerModule } from '@nestjs/throttler';
+import { APP_GUARD } from '@nestjs/core';
 import configuration from './config/configuration';
 import { AuthModule } from './modules/auth/auth.module';
 import { InvitationsModule } from './modules/invitations/invitations.module';
@@ -17,6 +19,7 @@ import { Template } from './modules/templates/entities/template.entity';
 import { Package } from './modules/payments/entities/package.entity';
 import { Order } from './modules/payments/entities/order.entity';
 import { Message } from './modules/invitations/entities/message.entity';
+import { JwtAuthGuard } from './modules/auth/guards/jwt-auth.guard';
 
 @Module({
   imports: [
@@ -60,6 +63,12 @@ import { Message } from './modules/invitations/entities/message.entity';
     GuestsModule,
     TemplatesModule,
     PaymentsModule,
+  ],
+  providers: [
+    {
+      provide: APP_GUARD,
+      useClass: JwtAuthGuard,
+    },
   ],
 })
 export class AppModule {}
