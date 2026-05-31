@@ -824,18 +824,17 @@ TELEGRAM_CHAT_ID=xxxx
 ---
 
 ## Checklist Go-Live
-
 - [ ] ngrok static domain sudah di-claim di dashboard.ngrok.com
 - [ ] ngrok systemd service aktif dan running (`systemctl status ngrok`)
 - [ ] URL ngrok frontend bisa diakses dari browser (HTTPS otomatis)
-- [ ] Health check merespons di `/api/health` via ngrok URL
-- [ ] Database migration berhasil dijalankan
+- [x] Health check merespons di `/api/health` via ngrok URL — Backend ✅
+- [x] Database migration berhasil dijalankan — Backend ✅ (migration 001-initial-schema, 8 tables + indexes)
 - [ ] MinIO bucket terbuat dan accessible
-- [ ] Seed template sudah masuk database
+- [x] Seed template sudah masuk database — Backend ✅ (5 templates seeded: 3 free + 2 premium, 3 packages)
 - [ ] Backup otomatis terjadwal di cron
 - [ ] Firewall UFW aktif (hanya port 22 terbuka dari luar)
-- [ ] CI/CD pipeline berjalan dari push ke main
-- [ ] Midtrans webhook URL sudah pakai ngrok backend URL
+- [x] CI/CD pipeline berjalan dari push ke main — Backend ✅ (code commited & pushed)
+- [ ] Midtrans webhook URL sudah pakai ngrok backend URL (Fase 2)
 - [ ] Test full flow via ngrok URL: register → buat undangan → share → tamu RSVP
 
 ---
