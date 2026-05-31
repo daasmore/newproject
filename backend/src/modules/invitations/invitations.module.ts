@@ -9,15 +9,19 @@ import { Invitation } from './entities/invitation.entity';
 import { Message } from './entities/message.entity';
 import { Guest } from '../guests/entities/guest.entity';
 import { InvitationOwnerGuard } from './guards/invitation-owner.guard';
+import { AuthModule } from '../auth/auth.module';
 
 @Module({
-  imports: [TypeOrmModule.forFeature([Invitation, Message, Guest])],
+  imports: [
+    TypeOrmModule.forFeature([Invitation, Message, Guest]),
+    AuthModule,
+  ],
   controllers: [InvitationsController, MessagesController],
   providers: [InvitationsService, GuestsService, InvitationOwnerGuard],
   exports: [
     InvitationsService,
     InvitationOwnerGuard,
-    TypeOrmModule, // re-export TypeOrmModule so InvitationRepository is available
+    TypeOrmModule,
   ],
 })
 export class InvitationsModule {}

@@ -5,11 +5,13 @@ import { SectionsController } from './sections.controller';
 import { SectionsService } from './sections.service';
 import { InvitationSection } from './entities/invitation-section.entity';
 import { InvitationsModule } from '../invitations/invitations.module';
+import { AuthModule } from '../auth/auth.module';
 
 @Module({
   imports: [
     TypeOrmModule.forFeature([InvitationSection]),
-    InvitationsModule, // provides InvitationOwnerGuard + InvitationRepository
+    InvitationsModule,
+    AuthModule,
   ],
   controllers: [SectionsController],
   providers: [SectionsService],
